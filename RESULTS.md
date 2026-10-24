@@ -13,7 +13,7 @@ Step 0.8, what was wrong, and how the checks showed it: The original script used
 | Step | Test type    | Users | Req/s | p(95)    | Max      | Failed | Checks  |
 | ---- | ------------ | ----- | ----- | -------- | -------- | ------ | ------- |
 | A1   | Smoke        | 1     | 0.54  | 335.91ms | 346.67ms | 0.00%  | 100.00% |
-| A2   | Average load | 3     |       |          |          |        |         |
+| A2   | Average load | 3     | 1.33  | 371.77ms | 387.61ms | 0.00%  | 100.00% |
 | A3   | Stress       | 5     |       |          |          |        |         |
 | A4   | Spike        | 5     |       |          |          |        |         |
 | A5   | Soak         | 2     |       |          |          |        |         |
