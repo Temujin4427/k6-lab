@@ -16,83 +16,25 @@ Step 0.8, what was wrong, and how the checks showed it: The original script used
 | A2   | Average load | 3     | 1.33  | 371.77ms | 387.61ms | 0.00%  | 100.00% |
 | A3   | Stress       | 5     | 2.17  | 373.24ms | 396.90ms | 0.00%  | 100.00% |
 | A4   | Spike        | 5     | 1.04  | 379.31ms | 393.02ms | 0.00%  | 100.00% |
-| A5   | Soak         | 2     |       |          |          |        |         |
+| A5   | Soak         | 2     | 0.99  | 377.07ms | 393.96ms | 0.00%  | 100.00% |
 
 ## Part B
 
-1.
-2.
-3.
-4.
-5.
-6.
-7.
-8.
-9.
+1. Filled in the Part A results table above.
+2. In Step 0.2, each iteration took around 1.27s - 1.31s due to HTTP request latency plus the explicit `sleep(1)`. Therefore, 1 VU executes ~0.78 req/s, resulting in a total rate of ~3.78 req/s across 5 VUs.
+3. The response time remained virtually identical between average load (p(95) = 371.77ms) and stress test (p(95) = 373.24ms). This indicates that 5 virtual users are still well inside QuickPizza's operational envelope.
+4. Response time remained stable during the spike and returned to the baseline immediately within a few seconds after dropping back to 1 VU.
+5. Neither response time nor error rate degraded over time during the soak test. A soak test lasting several hours could reveal long-term memory leaks, thread pool leaks, or unclosed database connection pools.
+6. Percentiles like p(95) reflect the worst-case response times for 95% of users, whereas averages mask severe response time spikes and long-tail latency.
+7. 1. Public internet latency and jitter add uncontrolled network delays. 2) Shared public servers experience fluctuating background traffic from other users worldwide, unlike an isolated lab environment.
+8. Launching high-load tests against unauthorized systems simulates a Distributed Denial of Service (DDoS) attack, which can crash the application, disrupt service for legitimate users, and incur legal liability.
+9. Vague requirement: "The social media feed should load quickly under typical load."  
+   Testable requirement: "When 50 concurrent virtual users request the home feed over 5 minutes, 95% of requests must complete within 800ms and less than 1% of requests may fail."  
+   K6 thresholds:
 
----
-
-### ขั้นตอนที่ 3: ทำโจทย์ Part 0 ต่อทีละ Step
-
-ทุกครั้งที่ทำเสร็จแต่ละ Step อย่าลืมรันคำสั่ง push งานขึ้น GitHub:
-
-```powershell
-git add .
-git commit -m "Step X.X"
-git push
+```javascript
+thresholds: {
+  http_req_duration: ['p(95)<800'],
+  http_req_failed: ['rate<0.01'],
+}
 ```
-
-- **Step 0.1:** นำค่า `http_req_duration` จากการรัน `01-first-test.js` ไปกรอกลง `RESULTS.md`
-- **Step 0.2:** รันคำสั่ง `k6 run --vus 5 --duration 20s 01-first-test.js` บันทึกค่าที่ได้ลง `RESULTS.md` พร้อมอธิบายว่าทำไม Request rate ถึงไม่เกิน 5 req/s (วิเคราะห์จากเวลา `sleep(1)`)
-- **Step 0.3:** รัน `k6 run --vus 5 --iterations 20 01-first-test.js`
-- **Step 0.4:** สร้างไฟล์ `04-pizza-api.js` (ก็อปโค้ดจาก PDF ข้อ 0.4) แล้วรัน `k6 run 04-pizza-api.js`
-- **Step 0.5:** สร้างไฟล์ `05-no-token.js` (ก็อปโค้ดจาก PDF ข้อ 0.5) แล้วรัน `k6 run 05-no-token.js`
-- **Step 0.6:** สร้างไฟล์ `06-thresholds.js` (ก็อปโค้ดจาก PDF ข้อ 0.6)
-  - รัน `k6 run 06-thresholds.js`
-  - รัน `k6 run -e P95=300 06-thresholds.js`
-  - พิมพ์คำสั่ง `$LASTEXITCODE` ใน Terminal เพื่อดู Exit code แล้วจดลง `RESULTS.md`
-- **Step 0.7:** สร้างไฟล์ `07-requirement.js` กำหนด thresholds ตามโจทย์ (p95<1000, p99<1500, failed<0.01)
-  - รันแล้วจดค่า p95/p99 ที่วัดได้ลง `RESULTS.md`
-  - ปรับตัวเลขให้การทดสอบไม่ผ่าน รันใหม่ แล้วดูค่า `$LASTEXITCODE` บันทึกลง `RESULTS.md`
-- **Step 0.8:**
-  - สร้าง `08-bug-hunt.js` และ `explore.js` ตามโค้ดข้อ 0.8
-  - รัน `k6 run explore.js` เพื่อดูว่า API ใช้คำว่าอะไร
-  - แก้ไขคำใน `08-bug-hunt.js` ให้ถูกต้อง รัน `k6 run --vus 5 --duration 20s 08-bug-hunt.js` ให้ผ่าน 100% แล้วจดอธิบายลง `RESULTS.md`
-
----
-
-### ขั้นตอนที่ 4: ทำโจทย์ Part A (User Journey)
-
-1. สร้างไฟล์ `journey.js` (ก็อปโค้ดจาก PDF ข้อ A1)[cite: 9]
-2. **Step A1:** สร้าง `a1-smoke.js` แล้วรัน `k6 run a1-smoke.js`
-3. **Step A2:** สร้าง `a2-average.js` แล้วรันคำสั่งส่งออกรายงาน HTML:
-   ```powershell
-   k6 run --out web-dashboard=export=reports/a2-average.html a2-average.js
-   ```
-4. **Step A3:** สร้าง `a3-stress.js` ปรับ stages เป็น 5 users รันคำสั่ง:
-   ```powershell
-   k6 run --out web-dashboard=export=reports/a3-stress.html a3-stress.js
-   ```
-5. **Step A4:** สร้าง `a4-spike.js` กำหนด stages แบบ spike รันคำสั่ง:
-   ```powershell
-   k6 run --out web-dashboard=export=reports/a4-spike.html a4-spike.js
-   ```
-6. **Step A5:** สร้าง `a5-soak.js` (2 users ค้างไว้ 10 นาที) รันคำสั่ง:
-   ```powershell
-   k6 run --out web-dashboard=export=reports/a5-soak.html a5-soak.js
-   ```
-7. นำผลลัพธ์จากรายงาน HTML/Terminal ของข้อ A1–A5 ไปกรอกลงตารางใน `RESULTS.md`
-
----
-
-### ขั้นตอนที่ 5: ตอบคำถาม Part B และส่งงาน
-
-1. ตอบคำถามข้อ 1–9 ในไฟล์ `RESULTS.md` ให้ครบถ้วน
-2. ตรวจสอบว่าในโฟลเดอร์มีไฟล์ครบทั้งหมดตามที่กำหนด (สคริปต์ `.js`, รายงาน `.html` ในโฟลเดอร์ `reports/`, และไฟล์ `RESULTS.md`)
-3. พิมพ์คำสั่ง Push โค้ดทั้งหมดขึ้น GitHub:
-   ```powershell
-   git add .
-   git commit -m "Complete all lab assignments"
-   git push
-   ```
-4. คัดลอก URL ของ GitHub Repository (เช่น `[https://github.com/](https://github.com/)<your-username>/k6-lab`) ไปวางส่งในระบบ **MyCourses**
