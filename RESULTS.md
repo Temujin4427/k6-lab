@@ -3,10 +3,10 @@
 ## Part 0
 
 Step 0.1, http_req_duration: 260.21ms
-Step 0.2, requests, rate and p(95) and why the rate stays below 5: 80 requests, rate 3.78 req/s, p(95) = 278.22 ms. อัตราเร็วไม่ถึง 5 req/s เพราะ 1 VU ใช้เวลาประมาณ 1.27 - 1.31 วินาทีต่อรอบ (เวลายิง request ~0.27s + สั่ง sleep(1) อีก 1s) ทำให้ 1 VU ยิงได้ประมาณ 0.78 รอบ/วินาที เมื่อมี 5 VUs อัตราเร็วรวมจึงอยู่ที่ประมาณ 3.78 - 3.9 req/s
+Step 0.2, requests, rate and p(95) and why the rate stays below 5: 80 requests, rate 3.78 req/s, p(95) = 278.22 ms. The request rate stays below 5 req/s because each iteration takes ~1.27s - 1.31s (HTTP request duration ~0.27s + sleep(1s)). Each VU completes ~0.78 iterations per second, so 5 VUs yield a total rate of ~3.78 req/s.
 Step 0.6, exit code of the normal run and of the run with P95=300: Normal run exit code = 0, P95=300 run exit code = 99
 Step 0.7, rules that passed, p(95), p(99), exit code after your change: All rules passed (p(95) = 381.81ms, p(99) = 386.54ms). Exit code after changing requirement = 99
-Step 0.8, what was wrong, and how the checks showed it:
+Step 0.8, what was wrong, and how the checks showed it: The original script used lowercase 'pepperoni' and 'knife' instead of capitalized 'Pepperoni' and 'Knife', causing the API to ignore exclusions. Testing under load revealed this because repeated requests eventually generated unwanted ingredients/tools, causing checks to fail.
 
 ## Part A results
 
