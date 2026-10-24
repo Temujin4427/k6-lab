@@ -26,7 +26,7 @@
 4. In the spike report, the response time did not rise noticeably when the load jumped from 1 to 5 users (p(95) over the whole run was 379 ms, close to the 336 ms of the smoke test). So the recovery time was effectively 0 seconds, because 5 users is still far inside QuickPizza's operational envelope.
 5. Neither response time nor error rate degraded over time during the soak test. A soak test lasting several hours could reveal long-term memory leaks, thread pool leaks, or unclosed database connection pools.
 6. p(95) is the time that 95% of requests finish within, so 1 request in 20 is slower than it. The average hides these slow requests: a few very slow responses barely move the average, but real users who hit them have a bad experience. Requirements and thresholds therefore use percentiles.
-7. 1. Public internet latency and jitter add uncontrolled network delays. 2) Shared public servers experience fluctuating background traffic from other users worldwide, unlike an isolated lab environment.
+7. Two reasons: (1) public internet latency and jitter add uncontrolled network delays; (2) shared public servers experience fluctuating background traffic from other users worldwide, unlike an isolated lab environment.
 8. Launching high-load tests against unauthorized systems simulates a Distributed Denial of Service (DDoS) attack, which can crash the application, disrupt service for legitimate users, and incur legal liability.
 9. Vague requirement: "The social media feed should load quickly under typical load."  
    Testable requirement: "When 50 concurrent virtual users request the home feed over 5 minutes, 95% of requests must complete within 800ms and less than 1% of requests may fail."  
